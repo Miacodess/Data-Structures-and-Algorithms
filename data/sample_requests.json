@@ -1,0 +1,14 @@
+[
+  {"id": "REQ-001", "customer": "Chinedu Okeke", "device": "Smart meter SM-200", "firmware": "2.1.0", "issue": "Meter display is blank after a power cut", "created": "2026-10-01 08:05"},
+  {"id": "REQ-002", "customer": "Amina Bello", "device": "Solar inverter SI-5000", "firmware": "1.4.2", "issue": "Inverter keeps switching to grid power during the day", "created": "2026-10-01 08:40"},
+  {"id": "REQ-003", "customer": "Tunde Balogun", "device": "Weather sensor WS-10", "firmware": "0.9.8", "issue": "Temperature readings stopped updating on the app", "created": "2026-10-01 09:15"},
+  {"id": "REQ-004", "customer": "Ngozi Adeyemi", "device": "Battery pack BP-48", "firmware": "3.0.1", "issue": "Battery casing is overheating and smells of burning", "created": "2026-10-01 09:50"},
+  {"id": "REQ-005", "customer": "Ibrahim Musa", "device": "Smart meter SM-200", "firmware": "2.0.7", "issue": "Credit balance shows the wrong amount", "created": "2026-10-01 10:20"},
+  {"id": "REQ-006", "customer": "Funke Alade", "device": "Smart thermostat TH-30", "firmware": "1.1.0", "issue": "Cannot connect the thermostat to Wi-Fi", "created": "2026-10-01 11:00"},
+  {"id": "REQ-007", "customer": "Emeka Nwosu", "device": "Solar inverter SI-5000", "firmware": "1.4.2", "issue": "Error code E14 appears every morning", "created": "2026-10-01 11:30"},
+  {"id": "REQ-008", "customer": "Zainab Yusuf", "device": "Weather sensor WS-10", "firmware": "0.9.8", "issue": "Battery drains within two days", "created": "2026-10-01 12:10"},
+  {"id": "REQ-009", "customer": "Kelechi Obi", "device": "Battery pack BP-48", "firmware": "3.0.1", "issue": "Sparks seen at the charging terminal", "created": "2026-10-01 12:45"},
+  {"id": "REQ-010", "customer": "Seun Ogunleye", "device": "Smart meter SM-200", "firmware": "2.1.0", "issue": "Need help reading the monthly usage report", "created": "2026-10-01 13:30"},
+  {"id": "REQ-011", "customer": "Amina Bello", "device": "Smart thermostat TH-30", "firmware": "1.0.9", "issue": "Schedule resets after every restart", "created": "2026-10-01 14:05"},
+  {"id": "REQ-005", "customer": "Ibrahim Musa", "device": "Smart meter SM-200", "firmware": "2.0.7", "issue": "Credit balance shows the wrong amount (sent again)", "created": "2026-10-01 14:20"}
+]

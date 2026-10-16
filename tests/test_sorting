@@ -1,0 +1,74 @@
+import pytest
+
+from flexisaf_ai_engineering_w2.sorting import STATUS_ORDER, by_date, insertion_sort, sort_requests
+from flexisaf_ai_engineering_w2.support_desk import VALID_STATUSES, SupportDesk
+
+
+def make_requests():
+    desk = SupportDesk()
+    desk.add_request("REQ-001", "A", "D", "1", "slow", created="2026-10-03 09:00")
+    desk.add_request("REQ-002", "B", "D", "1", "smoke from the unit", created="2026-10-01 09:00")
+    desk.add_request("REQ-003", "C", "D", "1", "no signal", created="2026-10-02 09:00")
+    desk.add_request("REQ-004", "D", "D", "1", "blank screen", created="2026-10-01 08:00")
+    desk.update_status("REQ-001", "resolved")
+    desk.update_status("REQ-003", "in_progress")
+    return list(desk.requests.values())
+
+
+def ids(requests):
+    return [request["id"] for request in requests]
+
+
+def test_sort_by_date_puts_oldest_first():
+    assert ids(sort_requests(make_requests(), "date")) == ["REQ-004", "REQ-002", "REQ-003", "REQ-001"]
+
+
+def test_sort_by_priority_puts_high_first():
+    ordered = sort_requests(make_requests(), "priority")
+    assert ordered[0]["id"] == "REQ-002"  # the only high-priority request
+
+
+def test_sort_by_status_follows_the_workflow_order():
+    ordered = sort_requests(make_requests(), "status")
+    assert [request["status"] for request in ordered] == ["open", "open", "in_progress", "resolved"]
+
+
+@pytest.mark.parametrize("field", ["date", "priority", "status"])
+def test_insertion_sort_gives_the_same_result_as_sorted(field):
+    requests = make_requests()
+    assert ids(sort_requests(requests, field, "insertion")) == ids(sort_requests(requests, field, "builtin"))
+
+
+def test_equal_items_keep_their_original_order():
+    requests = make_requests()  # REQ-001, REQ-003 and REQ-004 are all "normal" priority
+    ordered = sort_requests(requests, "priority", "insertion")
+    normal = [r["id"] for r in ordered if r["priority"] == "normal"]
+    assert normal == ["REQ-001", "REQ-003", "REQ-004"]
+
+
+def test_sorting_does_not_change_the_original_list():
+    requests = make_requests()
+    before = ids(requests)
+    sort_requests(requests, "date", "insertion")
+    sort_requests(requests, "date", "builtin")
+    assert ids(requests) == before
+
+
+def test_insertion_sort_handles_empty_and_single_item_lists():
+    assert insertion_sort([], by_date) == []
+    single = make_requests()[:1]
+    assert insertion_sort(single, by_date) == single
+
+
+def test_unknown_field_is_rejected():
+    with pytest.raises(ValueError):
+        sort_requests(make_requests(), "colour")
+
+
+def test_unknown_method_is_rejected():
+    with pytest.raises(ValueError):
+        sort_requests(make_requests(), "date", "bubble")
+
+
+def test_status_order_covers_every_valid_status():
+    assert set(STATUS_ORDER) == set(VALID_STATUSES)

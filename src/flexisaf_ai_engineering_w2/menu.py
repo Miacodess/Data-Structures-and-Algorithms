@@ -5,7 +5,9 @@ from pathlib import Path
 from .errors import DuplicateRequestError, RequestNotFoundError
 from .storage import load_requests
 from .support_desk import VALID_STATUSES, SupportDesk
+from .search import find_by_customer, find_by_id
 from .priority import has_urgent_keyword
+from .sorting import sort_requests
 
 Data_File = Path(__file__).resolve().parents[2] / "data" / "sample_requests.json"
 
@@ -16,6 +18,8 @@ Menu = """
 3. Show how many requests are waiting
 4. Update a request's status
 5. Undo the last status update
+6. Search for a request
+7. List requests, sorted
 0. Quit
 """
 
@@ -79,6 +83,47 @@ def undo_flow(desk: SupportDesk) -> None:
     else:
         print(f"Undone: {request['id']} is back to {request['status']}.")
 
+def show_summary(request: dict) -> None:
+    print(
+        f"  {request['id']} | {request['created']} | {request['priority']:6} | "
+        f"{request['status']:16} | {request['customer']}"
+    )
+
+
+def search_flow(desk: SupportDesk) -> None:
+    choice = input("Search by (1) request ID or (2) customer name: ").strip()
+
+    if choice == "1":
+        request = find_by_id(desk, input("Request ID: "))
+        if request is None:
+            print("No request with that ID.")
+        else:
+            show_request(request)
+    elif choice == "2":
+        matches = find_by_customer(desk, input("Customer name (or part of it): "))
+        if not matches:
+            print("No matching customers.")
+        else:
+            print(f"{len(matches)} found:")
+            for request in matches:
+                show_summary(request)
+    else:
+        print("Please choose 1 or 2.")
+
+def sort_flow(desk: SupportDesk) -> None:
+    field = input("Sort by (date/priority/status): ").strip().lower()
+    own_sort = input("Use my own insertion sort instead of sorted()? (y/n): ").strip().lower()
+    method = "insertion" if own_sort == "y" else "builtin"
+
+    try:
+        ordered = sort_requests(list(desk.requests.values()), field, method)
+    except ValueError as error:
+        print(f"Cannot sort: {error}.")
+        return
+
+    print(f"{len(ordered)} requests, sorted by {field}:")
+    for request in ordered:
+        show_summary(request)
 
 def main() -> None:
     desk = SupportDesk()
@@ -104,6 +149,10 @@ def main() -> None:
             update_status_flow(desk)
         elif choice == "5":
             undo_flow(desk)
+        elif choice == "6":
+            search_flow(desk)
+        elif choice == "7":
+            sort_flow(desk)
         elif choice == "0":
             print("Goodbye!")
             break

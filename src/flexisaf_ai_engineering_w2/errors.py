@@ -3,3 +3,7 @@
 
 class DuplicateRequestError(Exception):
     """Raised when a request ID has already been used."""
+
+
+class RequestNotFoundError(Exception):
+    """Raised when no request has the given ID."""

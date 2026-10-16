@@ -3,8 +3,10 @@
 from collections import deque
 from datetime import datetime
 
-from .errors import DuplicateRequestError
+from .errors import DuplicateRequestError, RequestNotFoundError
 from .priority import has_urgent_keyword
+
+VALID_STATUSES = ("open", "in_progress", "waiting_customer", "resolved", "closed")
 
 
 class SupportDesk:
@@ -13,6 +15,7 @@ class SupportDesk:
         self.seen_ids = set()
         self.urgent_queue = deque()
         self.normal_queue = deque()
+        self.undo_stack = []
 
     def add_request(
         self,
@@ -71,3 +74,33 @@ class SupportDesk:
     def queue_sizes(self) -> tuple[int, int]:
         """Return (urgent waiting, normal waiting)."""
         return len(self.urgent_queue), len(self.normal_queue)
+
+    def get_request(self, request_id: str) -> dict:
+        """Return a request by ID, or raise RequestNotFoundError."""
+        request = self.requests.get(request_id.strip().upper())
+        if request is None:
+            raise RequestNotFoundError(
+                f"No request with ID {request_id.strip().upper()}"
+            )
+        return request
+
+    def update_status(self, request_id: str, new_status: str) -> dict:
+        """Change a request's status, remembering the old one so it can be undone."""
+        request = self.get_request(request_id)
+        if new_status not in VALID_STATUSES:
+            raise ValueError("Status must be one of: " + ", ".join(VALID_STATUSES))
+        if request["status"] == new_status:
+            raise ValueError(f"{request['id']} is already {new_status}")
+
+        self.undo_stack.append((request["id"], request["status"]))
+        request["status"] = new_status
+        return request
+
+    def undo_last_update(self) -> dict | None:
+        """Reverse the most recent status update. Return None if there is nothing to undo."""
+        if not self.undo_stack:
+            return None
+        request_id, old_status = self.undo_stack.pop()
+        request = self.requests[request_id]
+        request["status"] = old_status
+        return request

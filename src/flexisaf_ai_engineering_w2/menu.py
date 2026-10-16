@@ -2,20 +2,23 @@
 
 from pathlib import Path
 
-from .errors import DuplicateRequestError
+from .errors import DuplicateRequestError, RequestNotFoundError
 from .storage import load_requests
-from .support_desk import SupportDesk
+from .support_desk import VALID_STATUSES, SupportDesk
 from .priority import has_urgent_keyword
 
-Data_File = Path(__file__).resolve().parents[2]/ "data"/ "sample_requests.json"
+Data_File = Path(__file__).resolve().parents[2] / "data" / "sample_requests.json"
 
-Menu =  """
+Menu = """
 === Smart Device Support Desk ===
 1. Add a support request
 2. Process the next request
 3. Show how many requests are waiting
+4. Update a request's status
+5. Undo the last status update
 0. Quit
 """
+
 
 def show_request(request: dict) -> None:
     print(f"  ID:        {request['id']}")
@@ -36,7 +39,9 @@ def add_request_flow(desk: SupportDesk) -> None:
     urgent = input("Mark as urgent? (y/n): ").strip().lower() == "y"
 
     try:
-        request = desk.add_request(request_id, customer, device, firmware, issue, urgent=urgent)
+        request = desk.add_request(
+            request_id, customer, device, firmware, issue, urgent=urgent
+        )
     except DuplicateRequestError as error:
         print(f"Not added: {error}.")
     except ValueError as error:
@@ -52,6 +57,27 @@ def process_flow(desk: SupportDesk) -> None:
     else:
         print("Now processing:")
         show_request(request)
+
+
+def update_status_flow(desk: SupportDesk) -> None:
+    request_id = input("Request ID: ")
+    print("Statuses: " + ", ".join(VALID_STATUSES))
+    new_status = input("New status: ").strip().lower()
+
+    try:
+        request = desk.update_status(request_id, new_status)
+    except (RequestNotFoundError, ValueError) as error:
+        print(f"Not updated: {error}.")
+    else:
+        print(f"{request['id']} is now {request['status']}.")
+
+
+def undo_flow(desk: SupportDesk) -> None:
+    request = desk.undo_last_update()
+    if request is None:
+        print("Nothing to undo.")
+    else:
+        print(f"Undone: {request['id']} is back to {request['status']}.")
 
 
 def main() -> None:
@@ -74,6 +100,10 @@ def main() -> None:
         elif choice == "3":
             urgent, normal = desk.queue_sizes()
             print(f"Waiting: {urgent} urgent, {normal} normal.")
+        elif choice == "4":
+            update_status_flow(desk)
+        elif choice == "5":
+            undo_flow(desk)
         elif choice == "0":
             print("Goodbye!")
             break
